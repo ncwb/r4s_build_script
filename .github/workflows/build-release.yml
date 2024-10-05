@@ -65,7 +65,7 @@ jobs:
       run: |
         export GITHUB_REPO=${{ github.repository }}
         export ${{ github.event.inputs.build_options }}
-        bash <(curl -sS https://raw.githubusercontent.com/${{ github.repository }}/master/openwrt/build.sh) rc2 ${{ github.event.inputs.device }}
+        bash <(curl -sS https://raw.githubusercontent.com/${{ github.repository }}/master/openwrt/build.sh) dev ${{ github.event.inputs.device }}
         cd openwrt
         tags=$(git describe --abbrev=0 --tags)
         echo "latest_release=$tags" >>$GITHUB_ENV
