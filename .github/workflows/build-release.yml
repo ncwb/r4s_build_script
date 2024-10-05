@@ -2,23 +2,8 @@ name: Build releases
 
 on:
   workflow_dispatch:
-    inputs:
-      device:
-        description: 'Select device to build'
-        required: true
-        default: 'x86_64'
-        type: choice
-        options:
-          - 'armv8'
-          - 'nanopi-r4s'
-          - 'nanopi-r5s'
-          - 'netgear_r8500'
-          - 'x86_64'
-      build_options:
-        description: 'Build options (separate multiple options with spaces)'
-        required: false
-        default: 'BUILD_FAST=y ENABLE_BPF=y ENABLE_LTO=y ENABLE_LRNG=y ENABLE_MOLD=y KERNEL_CLANG_LTO=y USE_GCC15=y TESTING_KERNEL=y'
-        type: string
+  schedule:
+    - cron: 0 */8 * * *
 
 jobs:
   build:
@@ -27,7 +12,9 @@ jobs:
     defaults:
       run:
         shell: bash
-
+     matrix:
+        model:
+          - x86_64
     steps:
     - name: Setup variables
       run: |
@@ -64,8 +51,8 @@ jobs:
       continue-on-error: true
       run: |
         export GITHUB_REPO=${{ github.repository }}
-        export ${{ github.event.inputs.build_options }}
-        bash <(curl -sS https://raw.githubusercontent.com/${{ github.repository }}/master/openwrt/build.sh) dev ${{ github.event.inputs.device }}
+        export BUILD_FAST=y ENABLE_BPF=y ENABLE_LTO=y ENABLE_LRNG=y ENABLE_MOLD=y KERNEL_CLANG_LTO=y USE_GCC15=y TESTING_KERNEL=y
+        bash <(curl -sS https://raw.githubusercontent.com/${{ github.repository }}/master/openwrt/build.sh) rc2 ${{ matrix.model }}
         cd openwrt
         tags=$(git describe --abbrev=0 --tags)
         echo "latest_release=$tags" >>$GITHUB_ENV
