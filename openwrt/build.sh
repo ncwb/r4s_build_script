@@ -177,17 +177,19 @@ echo -e "${GREEN_COLOR}GCC VERSION: $gcc_version${RES}"
 [ "$KERNEL_CLANG_LTO" = "y" ] && echo -e "${GREEN_COLOR}KERNEL_CLANG_LTO: true${RES}\r\n" || echo -e "${GREEN_COLOR}KERNEL_CLANG_LTO:${RES} ${YELLOW_COLOR}false${RES}\r\n"
 
 # clean old files
-rm -rf openwrt master && mkdir master
+rm -rf openwrt master
 
 # openwrt - releases
 [ "$(whoami)" = "runner" ] && group "source code"
 git clone --depth=1 https://$github/openwrt/openwrt -b $branch
 
 # openwrt master
-git clone https://$github/openwrt/openwrt master/openwrt --depth=1
-git clone https://$github/openwrt/packages master/packages --depth=1
-git clone https://$github/openwrt/luci master/luci --depth=1
-git clone https://$github/openwrt/routing master/routing --depth=1
+if [ "$1" = "rc2" ]; then
+    git clone https://$github/openwrt/openwrt master/openwrt --depth=1
+    git clone https://$github/openwrt/packages master/packages --depth=1
+    git clone https://$github/openwrt/luci master/luci --depth=1
+    git clone https://$github/openwrt/routing master/routing --depth=1
+fi
 
 # openwrt-23.05
 [ "$1" = "rc2" ] && git clone https://$github/openwrt/openwrt -b openwrt-23.05 master/openwrt-23.05 --depth=1
@@ -199,6 +201,7 @@ git clone https://$github/immortalwrt/packages master/immortalwrt_packages --dep
 if [ -d openwrt ]; then
     cd openwrt
     [ "$1" = "rc2" ] && echo "$CURRENT_DATE" > version.date
+    [ "$1" = "dev" ] && sed -i 's/$(VERSION_NUMBER),SNAPSHOT/$(VERSION_NUMBER),24.10-SNAPSHOT/g' include/version.mk
     curl -Os https://$mirror/openwrt/patch/key.tar.gz && tar zxf key.tar.gz && rm -f key.tar.gz
 else
     echo -e "${RED_COLOR}Failed to download source code${RES}"
@@ -266,7 +269,7 @@ bash 04-fix_kmod.sh
 bash 05-fix-source.sh
 [ "$(whoami)" = "runner" ] && endgroup
 
-if [ "$USE_GCC14" = "y" ] || [ "$USE_GCC15" = "y" ]; then
+if [ "$USE_GCC14" = "y" ] || [ "$USE_GCC15" = "y" ] && [ "$version" = "rc2" ]; then
     rm -rf toolchain/binutils
     cp -a ../master/openwrt/toolchain/binutils toolchain/binutils
 fi
@@ -352,28 +355,30 @@ fi
 
 # openwrt-23.05 gcc11/13/14/15
 [ "$(whoami)" = "runner" ] && group "patching toolchain"
-if [ "$USE_GCC13" = "y" ] || [ "$USE_GCC14" = "y" ] || [ "$USE_GCC15" = "y" ]; then
-    [ "$USE_GCC13" = "y" ] && curl -s https://$mirror/openwrt/generic/config-gcc13 >> .config
-    [ "$USE_GCC14" = "y" ] && curl -s https://$mirror/openwrt/generic/config-gcc14 >> .config
-    [ "$USE_GCC15" = "y" ] && curl -s https://$mirror/openwrt/generic/config-gcc15 >> .config
-    curl -s https://$mirror/openwrt/patch/generic/200-toolchain-gcc-update-to-13.2.patch | patch -p1
-    curl -s https://$mirror/openwrt/patch/generic/201-toolchain-gcc-add-support-for-GCC-14.patch | patch -p1
-    curl -s https://$mirror/openwrt/patch/generic/202-toolchain-gcc-add-support-for-GCC-15.patch | patch -p1
-    # gcc14/15 init
-    cp -a toolchain/gcc/patches-13.x toolchain/gcc/patches-14.x
-    curl -s https://$mirror/openwrt/patch/generic/gcc-14/910-mbsd_multi.patch > toolchain/gcc/patches-14.x/910-mbsd_multi.patch
+if [ "$1" = "rc2" ]; then
+    if [ "$USE_GCC13" = "y" ] || [ "$USE_GCC14" = "y" ] || [ "$USE_GCC15" = "y" ]; then
+        curl -s https://$mirror/openwrt/patch/generic/200-toolchain-gcc-update-to-13.2.patch | patch -p1
+        curl -s https://$mirror/openwrt/patch/generic/201-toolchain-gcc-add-support-for-GCC-14.patch | patch -p1
+        curl -s https://$mirror/openwrt/patch/generic/202-toolchain-gcc-add-support-for-GCC-15.patch | patch -p1
+        # gcc14/15 init
+        cp -a toolchain/gcc/patches-13.x toolchain/gcc/patches-14.x
+        curl -s https://$mirror/openwrt/patch/generic/gcc-14/910-mbsd_multi.patch > toolchain/gcc/patches-14.x/910-mbsd_multi.patch
+        cp -a toolchain/gcc/patches-14.x toolchain/gcc/patches-15.x
+        curl -s https://$mirror/openwrt/patch/generic/gcc-15/970-macos_arm64-building-fix.patch > toolchain/gcc/patches-15.x/970-macos_arm64-building-fix.patch
+    elif [ ! "$ENABLE_GLIBC" = "y" ]; then
+        curl -s https://$mirror/openwrt/generic/config-gcc11 >> .config
+    fi
+else
     cp -a toolchain/gcc/patches-14.x toolchain/gcc/patches-15.x
-    curl -s https://$mirror/openwrt/patch/generic/gcc-15/970-macos_arm64-building-fix.patch > toolchain/gcc/patches-15.x/970-macos_arm64-building-fix.patch
-elif [ ! "$ENABLE_GLIBC" = "y" ]; then
-    curl -s https://$mirror/openwrt/generic/config-gcc11 >> .config
+    curl -s https://$mirror/openwrt/patch/generic-24.10/202-toolchain-gcc-add-support-for-GCC-15.patch | patch -p1
 fi
+[ "$USE_GCC13" = "y" ] && curl -s https://$mirror/openwrt/generic/config-gcc13 >> .config
+[ "$USE_GCC14" = "y" ] && curl -s https://$mirror/openwrt/generic/config-gcc14 >> .config
+[ "$USE_GCC15" = "y" ] && curl -s https://$mirror/openwrt/generic/config-gcc15 >> .config
 [ "$(whoami)" = "runner" ] && endgroup
 
 # uhttpd
 [ "$ENABLE_UHTTPD" = "y" ] && sed -i '/nginx/d' .config && echo 'CONFIG_PACKAGE_ariang=y' >> .config
-
-# bcm53xx: upx_list.txt
-# [ "$platform" = "bcm53xx" ] && curl -s https://$mirror/openwrt/generic/upx_list.txt > upx_list.txt
 
 # test kernel
 [ "$TESTING_KERNEL" = "y" ] && [ "$platform" = "bcm53xx" ] && sed -i '1i\# CONFIG_PACKAGE_kselftests-bpf is not set\n# CONFIG_PACKAGE_perf is not set\n' .config
@@ -614,5 +619,3 @@ EOF
     fi
     exit 0
 fi
-
-# 很少有人会告诉你为什么要这样做，而是会要求你必须要这样做。
