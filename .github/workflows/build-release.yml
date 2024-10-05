@@ -12,6 +12,14 @@ jobs:
     defaults:
       run:
         shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        model:
+          - x86_64
+        tag:
+          - type: rc2
+            version: openwrt-23.05
     steps:
     - name: Setup variables
       run: |
@@ -48,7 +56,7 @@ jobs:
       continue-on-error: true
       run: |
         export GITHUB_REPO=${{ github.repository }}
-        export BUILD_FAST=y ENABLE_BPF=y ENABLE_LTO=y ENABLE_LRNG=y ENABLE_MOLD=y KERNEL_CLANG_LTO=y USE_GCC15=y TESTING_KERNEL=y
+        export BUILD_FAST=y ENABLE_OTA=y ENABLE_BPF=y ENABLE_LTO=y ENABLE_LRNG=y ENABLE_MOLD=y KERNEL_CLANG_LTO=y USE_GCC15=y TESTING_KERNEL=y
         bash <(curl -sS https://raw.githubusercontent.com/${{ github.repository }}/master/openwrt/build.sh) rc2 x86_64
         cd openwrt
         tags=$(git describe --abbrev=0 --tags)
