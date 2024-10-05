@@ -57,7 +57,7 @@ jobs:
       run: |
         export GITHUB_REPO=${{ github.repository }}
         export BUILD_FAST=y ENABLE_OTA=y ENABLE_BPF=y ENABLE_LTO=y ENABLE_LRNG=y ENABLE_MOLD=y KERNEL_CLANG_LTO=y USE_GCC15=y TESTING_KERNEL=y
-        bash <(curl -sS https://raw.githubusercontent.com/${{ github.repository }}/master/openwrt/build.sh) rc2 x86_64
+        bash <(curl -sS https://raw.githubusercontent.com/${{ github.repository }}/master/openwrt/build.sh) ${{ matrix.tag.type }} ${{ matrix.model }}
         cd openwrt
         tags=$(git describe --abbrev=0 --tags)
         echo "latest_release=$tags" >>$GITHUB_ENV
