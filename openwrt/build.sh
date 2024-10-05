@@ -89,9 +89,9 @@ fi
 
 # Source branch
 if [ "$1" = "dev" ]; then
-    export branch=openwrt-23.05
-    export version=snapshots-23.05
-    export toolchain_version=openwrt-23.05
+    export branch=master
+    export version=snapshots-24.10
+    export toolchain_version=openwrt-24.10
 elif [ "$1" = "rc2" ]; then
     latest_release="v$(curl -s https://$mirror/tags/v23)"
     export branch=$latest_release
