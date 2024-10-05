@@ -16,10 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         model:
-          - nanopi-r4s
-          - nanopi-r5s
           - x86_64
-          - netgear_r8500
         tag:
           - type: dev
             version: openwrt-24.10
