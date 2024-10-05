@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build ${{ github.event.inputs.device }}
+    name: Build ${{ matrix.model }}
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -68,24 +68,24 @@ jobs:
       working-directory: /builder
       run: |
         mkdir -p rom info
-        if [ "${{ github.event.inputs.device }}" = "nanopi-r4s" ]; then
+        if [ "${{ matrix.model }}" = "nanopi-r4s" ]; then
           cp -a openwrt/bin/targets/rockchip/*/*.img.gz rom/
           cp -a openwrt/bin/targets/rockchip/*/*-r4s.manifest info/manifest.txt
           cp -a openwrt/bin/targets/rockchip/*/config.buildinfo info/config.buildinfo
           cd rom && sha256sum *gz > ../info/sha256sums.txt
-        elif [ "${{ github.event.inputs.device }}" = "nanopi-r5s" ]; then
+        elif [ "${{ matrix.model }}" = "nanopi-r5s" ]; then
           cp -a openwrt/bin/targets/rockchip/*/*.img.gz rom/
           cp -a openwrt/bin/targets/rockchip/*/*.manifest info/manifest.txt
           cp -a openwrt/bin/targets/rockchip/*/config.buildinfo info/config.buildinfo
           cd rom && sha256sum *gz > ../info/sha256sums.txt
-        elif [ "${{ github.event.inputs.device }}" = "x86_64" ]; then
+        elif [ "${{ matrix.model }}" = "x86_64" ]; then
           cp -a openwrt/bin/targets/x86/*/*-ext4-combined-efi.img.gz rom/
           cp -a openwrt/bin/targets/x86/*/*-squashfs-combined-efi.img.gz rom/
           cp -a openwrt/bin/targets/x86/*/*-generic-rootfs.tar.gz rom/
           cp -a openwrt/bin/targets/x86/*/*-x86-64-generic.manifest info/manifest.txt
           cp -a openwrt/bin/targets/x86/*/config.buildinfo info/config.buildinfo
           cd rom && sha256sum *gz > ../info/sha256sums.txt
-        elif [ "${{ github.event.inputs.device }}" = "armv8" ]; then
+        elif [ "${{ matrix.model }}" = "armv8" ]; then
           tar zcf rom/u-boot-qemu_armv8.tar.gz -C openwrt/bin/targets/armsr/armv8*/ ./u-boot-qemu_armv8
           cp -a openwrt/bin/targets/armsr/armv8*/*-generic-initramfs-kernel.bin rom/
           cp -a openwrt/bin/targets/armsr/armv8*/*-generic-kernel.bin rom/
@@ -100,7 +100,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ github.event.inputs.device }}-openwrt-${{ env.latest_release }}
+        name: ${{ matrix.model }}-openwrt-${{ env.latest_release }}
         path: ${{ env.WORKDIR }}/rom/*
 
     - name: Create release
