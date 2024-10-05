@@ -449,7 +449,7 @@ else
     exit 1
 fi
 
-[ "$TESTING_KERNEL" = "y" ] && OTA_PREFIX="test-" || OTA_PREFIX=""
+[ "$TESTING_KERNEL" = "y" ] && OTA_PREFIX="" || OTA_PREFIX=""
 
 if [ "$platform" = "x86_64" ]; then
     if [ "$NO_KMOD" != "y" ]; then
