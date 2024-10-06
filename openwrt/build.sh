@@ -454,7 +454,7 @@ else
     exit 1
 fi
 
-[ "$TESTING_KERNEL" = "y" ] && OTA_PREFIX="test-" || OTA_PREFIX=""
+[ "$TESTING_KERNEL" = "y" ] && OTA_PREFIX="" || OTA_PREFIX=""
 
 if [ "$platform" = "x86_64" ]; then
     if [ "$NO_KMOD" != "y" ]; then
@@ -473,7 +473,7 @@ if [ "$platform" = "x86_64" ]; then
         if [ "$MINIMAL_BUILD" = "y" ]; then
             OTA_URL="https://x86.cooluc.com/d/minimal/openwrt-23.05"
         else
-            OTA_URL="https://github.com/sbwml/builder/releases/download"
+            OTA_URL="https://github.com/ncwb/r4s_build_script/releases/download"
         fi
         VERSION=$(sed 's/v//g' version.txt)
         SHA256=$(sha256sum bin/targets/x86/64*/*-generic-squashfs-combined-efi.img.gz | awk '{print $1}')
