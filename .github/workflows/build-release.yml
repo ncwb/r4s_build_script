@@ -67,7 +67,7 @@ jobs:
       if: steps.compile.outcome == 'failure'
       run: |
         cd openwrt
-        make V=s
+        make V=s IGNORE_ERRORS="n m"
 
     - name: Prepare Firmware Files
       working-directory: /builder
