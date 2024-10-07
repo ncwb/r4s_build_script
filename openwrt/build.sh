@@ -26,7 +26,7 @@ endgroup() {
 
 # IP Location
 ip_info=`curl -sk https://ip.cooluc.com`;
-export isCN=`echo $ip_info | grep -Po 'country_code\":"\K[^"]+'`;
+[ -n "$ip_info" ] && export isCN=`echo $ip_info | grep -Po 'country_code\":"\K[^"]+'` || export isCN=US
 
 # script url
 if [ "$isCN" = "CN" ]; then
@@ -39,9 +39,6 @@ fi
 if [ "$(whoami)" = "runner" ] && [ -n "$GITHUB_REPO" ]; then
     export mirror=raw.githubusercontent.com/$GITHUB_REPO/master
 fi
-
-# apply for sbwml/builder
-[ -n "$git_password" ] && export mirror=init2.cooluc.com
 
 # private gitea
 export gitea=git.cooluc.com
@@ -91,12 +88,12 @@ fi
 if [ "$1" = "dev" ]; then
     export branch=master
     export version=snapshots-24.10
-    export toolchain_version=openwrt-24.10
+    export openwrt_version=openwrt-24.10
 elif [ "$1" = "rc2" ]; then
     latest_release="v$(curl -s https://$mirror/tags/v23)"
     export branch=$latest_release
     export version=rc2
-    export toolchain_version=openwrt-23.05
+    export openwrt_version=openwrt-23.05
 fi
 
 # lan
@@ -390,16 +387,16 @@ fi
 # Toolchain Cache
 if [ "$BUILD_FAST" = "y" ]; then
     [ "$ENABLE_GLIBC" = "y" ] && LIBC=glibc || LIBC=musl
-    [ "$isCN" = "CN" ] && github_proxy="http://gh.cooluc.com/" || github_proxy=""
+    [ "$isCN" = "CN" ] && github_proxy="ghp.ci/" || github_proxy=""
     echo -e "\n${GREEN_COLOR}Download Toolchain ...${RES}"
     PLATFORM_ID=""
     [ -f /etc/os-release ] && source /etc/os-release
     if [ "$PLATFORM_ID" = "platform:el9" ]; then
         TOOLCHAIN_URL="http://127.0.0.1:8080"
     else
-        TOOLCHAIN_URL="$github_proxy"https://github.com/sbwml/openwrt_caches/releases/download/"$toolchain_version"
+        TOOLCHAIN_URL=https://${github_proxy}github.com/sbwml/openwrt_caches/releases/download/${openwrt_version}
     fi
-    curl -L "$TOOLCHAIN_URL"/toolchain_"$LIBC"_"$toolchain_arch"_gcc-"$gcc_version".tar.zst -o toolchain.tar.zst $CURL_BAR
+    curl -L ${TOOLCHAIN_URL}/toolchain_${LIBC}_${toolchain_arch}_gcc-${gcc_version}.tar.zst -o toolchain.tar.zst "$CURL_BAR"
     echo -e "\n${GREEN_COLOR}Process Toolchain ...${RES}"
     tar -I "zstd" -xf toolchain.tar.zst
     rm -f toolchain.tar.zst
@@ -424,7 +421,7 @@ if [ "$BUILD_TOOLCHAIN" = "y" ]; then
     rm -f dl/clang-*
     mkdir -p toolchain-cache
     [ "$ENABLE_GLIBC" = "y" ] && LIBC=glibc || LIBC=musl
-    tar -I "zstd -19 -T$(nproc --all)" -cf toolchain-cache/toolchain_"$LIBC"_"$toolchain_arch"_gcc-"$gcc_version".tar.zst ./{build_dir,dl,staging_dir,tmp}
+    tar -I "zstd -19 -T$(nproc --all)" -cf toolchain-cache/toolchain_${LIBC}_${toolchain_arch}_gcc-${gcc_version}.tar.zst ./{build_dir,dl,staging_dir,tmp}
     echo -e "\n${GREEN_COLOR} Build success! ${RES}"
     exit 0
 else
