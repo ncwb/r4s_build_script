@@ -394,9 +394,9 @@ if [ "$BUILD_FAST" = "y" ]; then
     if [ "$PLATFORM_ID" = "platform:el9" ]; then
         TOOLCHAIN_URL="http://127.0.0.1:8080"
     else
-        TOOLCHAIN_URL=https://${github_proxy}github.com/sbwml/openwrt_caches/releases/download/${openwrt_version}
+        TOOLCHAIN_URL=https://"$github_proxy"github.com/sbwml/openwrt_caches/releases/download/${openwrt_version}
     fi
-    curl -L ${TOOLCHAIN_URL}/toolchain_${LIBC}_${toolchain_arch}_gcc-${gcc_version}.tar.zst -o toolchain.tar.zst "$CURL_BAR"
+    curl -L ${TOOLCHAIN_URL}/toolchain_${LIBC}_${toolchain_arch}_gcc-${gcc_version}.tar.zst -o toolchain.tar.zst $CURL_BAR
     echo -e "\n${GREEN_COLOR}Process Toolchain ...${RES}"
     tar -I "zstd" -xf toolchain.tar.zst
     rm -f toolchain.tar.zst
@@ -451,7 +451,7 @@ else
     exit 1
 fi
 
-[ "$TESTING_KERNEL" = "y" ] && OTA_PREFIX="" || OTA_PREFIX=""
+[ "$TESTING_KERNEL" = "y" ] && OTA_PREFIX="test-" || OTA_PREFIX=""
 
 if [ "$platform" = "x86_64" ]; then
     if [ "$NO_KMOD" != "y" ]; then
@@ -470,7 +470,7 @@ if [ "$platform" = "x86_64" ]; then
         if [ "$MINIMAL_BUILD" = "y" ]; then
             OTA_URL="https://x86.cooluc.com/d/minimal/openwrt-23.05"
         else
-            OTA_URL="https://github.com/ncwb/r4s_build_script/releases/download"
+            OTA_URL="https://github.com/sbwml/builder/releases/download"
         fi
         VERSION=$(sed 's/v//g' version.txt)
         SHA256=$(sha256sum bin/targets/x86/64*/*-generic-squashfs-combined-efi.img.gz | awk '{print $1}')
