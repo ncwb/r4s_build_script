@@ -49,18 +49,18 @@ fi
 if [ "$version" = "rc2" ]; then
     rm -rf feeds/packages/net/frp
     cp -a ../master/packages/net/frp feeds/packages/net/frp
-    sed -i 's/procd_set_param stdout $stdout/procd_set_param stdout 0/g' feeds/packages/net/frp/files/frpc.init
-    sed -i 's/procd_set_param stderr $stderr/procd_set_param stderr 0/g' feeds/packages/net/frp/files/frpc.init
-    sed -i 's/stdout stderr //g' feeds/packages/net/frp/files/frpc.init
-    sed -i '/stdout:bool/d;/stderr:bool/d' feeds/packages/net/frp/files/frpc.init
-    sed -i '/stdout/d;/stderr/d' feeds/packages/net/frp/files/frpc.config
-    sed -i 's/env conf_inc/env conf_inc enable/g' feeds/packages/net/frp/files/frpc.init
-    sed -i "s/'conf_inc:list(string)'/& \\\\/" feeds/packages/net/frp/files/frpc.init
-    sed -i "/conf_inc:list/a\\\t\t\'enable:bool:0\'" feeds/packages/net/frp/files/frpc.init
-    sed -i '/procd_open_instance/i\\t\[ "$enable" -ne 1 \] \&\& return 1\n' feeds/packages/net/frp/files/frpc.init
-    curl -s https://$mirror/openwrt/patch/luci/applications/001-luci-app-frpc-hide-token.patch | patch -p1
-    curl -s https://$mirror/openwrt/patch/luci/applications/002-luci-app-frpc-add-enable-flag.patch | patch -p1
 fi
+sed -i 's/procd_set_param stdout $stdout/procd_set_param stdout 0/g' feeds/packages/net/frp/files/frpc.init
+sed -i 's/procd_set_param stderr $stderr/procd_set_param stderr 0/g' feeds/packages/net/frp/files/frpc.init
+sed -i 's/stdout stderr //g' feeds/packages/net/frp/files/frpc.init
+sed -i '/stdout:bool/d;/stderr:bool/d' feeds/packages/net/frp/files/frpc.init
+sed -i '/stdout/d;/stderr/d' feeds/packages/net/frp/files/frpc.config
+sed -i 's/env conf_inc/env conf_inc enable/g' feeds/packages/net/frp/files/frpc.init
+sed -i "s/'conf_inc:list(string)'/& \\\\/" feeds/packages/net/frp/files/frpc.init
+sed -i "/conf_inc:list/a\\\t\t\'enable:bool:0\'" feeds/packages/net/frp/files/frpc.init
+sed -i '/procd_open_instance/i\\t\[ "$enable" -ne 1 \] \&\& return 1\n' feeds/packages/net/frp/files/frpc.init
+curl -s https://$mirror/openwrt/patch/luci/applications/luci-app-frpc/001-luci-app-frpc-hide-token-${openwrt_version}.patch | patch -p1
+curl -s https://$mirror/openwrt/patch/luci/applications/luci-app-frpc/002-luci-app-frpc-add-enable-flag-${openwrt_version}.patch | patch -p1
 
 # samba4 - bump version
 rm -rf feeds/packages/net/samba4
