@@ -118,7 +118,7 @@ CONFIG_PACKAGE_luci-app-vlmcsd=y
 # CONFIG_PACKAGE_luci-app-watchcat=y
 # CONFIG_PACKAGE_luci-app-wolplus=y
 # CONFIG_PACKAGE_luci-app-zerotier=y
-CONFIG_PACKAGE_ariang-nginx=y
+# CONFIG_PACKAGE_ariang-nginx=y
 CONFIG_PACKAGE_luci-app-mwan3=y
 
 ### ImmortalWrt Proxy - nft
